@@ -5,13 +5,15 @@ import '../domain/snapshot.dart';
 import '../services/controller.dart';
 import '../services/backup_jobs.dart';
 import '../services/drive_backup.dart';
+import 'catalog_settings.dart';
 import 'design.dart';
 import 'dose_views.dart';
 
-class _DriveAccountAvatar extends StatelessWidget {
-  const _DriveAccountAvatar(this.snapshot);
+class DriveAccountAvatar extends StatelessWidget {
+  const DriveAccountAvatar(this.snapshot, {this.radius = 21, super.key});
 
   final Snapshot snapshot;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class _DriveAccountAvatar extends StatelessWidget {
     final photo = snapshot.backupPhotoUrl;
     return ExcludeSemantics(
       child: CircleAvatar(
-        radius: 21,
+        radius: radius,
         backgroundColor: colors.primaryContainer,
         foregroundColor: colors.onPrimaryContainer,
         foregroundImage: photo == null ? null : NetworkImage(photo),
@@ -79,7 +81,7 @@ class SettingsView extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             leading: driveAccount == null
                 ? const LeadingIcon(Icons.cloud_outlined)
-                : _DriveAccountAvatar(snapshot),
+                : DriveAccountAvatar(snapshot),
             title: const Text('Google Drive'),
             subtitle: Text(
               driveAccount == null
@@ -93,6 +95,35 @@ class SettingsView extends StatelessWidget {
               context,
               MaterialPageRoute<void>(
                 builder: (_) => DriveSettings(controller),
+              ),
+            ),
+          ),
+        ),
+        SectionCard(
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const LeadingIcon(Icons.search),
+            title: const Text('Medicine catalog'),
+            subtitle: ListenableBuilder(
+              listenable: controller.catalog,
+              builder: (context, _) {
+                final catalog = controller.catalog;
+                final updatedAt = catalog.info?.updatedAt;
+                if (catalog.sourcePresent && updatedAt != null) {
+                  return CatalogLastUpdated(updatedAt);
+                }
+                return Text(
+                  catalog.indexing
+                      ? 'Preparing medicine suggestions…'
+                      : 'Offline name suggestions',
+                );
+              },
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => CatalogSettings(controller.catalog),
               ),
             ),
           ),
@@ -274,7 +305,7 @@ class _DriveSettingsState extends State<DriveSettings> {
                     ] else ...[
                       Row(
                         children: [
-                          _DriveAccountAvatar(snapshot),
+                          DriveAccountAvatar(snapshot),
                           const SizedBox(width: Space.md),
                           Expanded(
                             child: Column(

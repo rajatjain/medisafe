@@ -26,6 +26,7 @@ class _TimeDraft {
 class _MedicineEditorState extends State<MedicineEditor> {
   final _form = GlobalKey<FormState>();
   late final TextEditingController _name;
+  final _nameFocus = FocusNode();
   late final TextEditingController _strength;
   late final TextEditingController _instructions;
   late final TextEditingController _interval;
@@ -60,6 +61,7 @@ class _MedicineEditorState extends State<MedicineEditor> {
 
   @override
   void dispose() {
+    _nameFocus.dispose();
     for (final field in [
       _name,
       _strength,
@@ -75,6 +77,14 @@ class _MedicineEditorState extends State<MedicineEditor> {
 
   String? _required(String? text) =>
       (text?.trim().isEmpty ?? true) ? 'Required' : null;
+
+  Future<Iterable<String>> _medicineOptions(TextEditingValue value) async {
+    try {
+      return await widget.controller.catalog.suggest(value.text);
+    } on Exception {
+      return [];
+    }
+  }
 
   String? _positive(String? text) {
     final number = int.tryParse(text ?? '');
@@ -199,11 +209,21 @@ class _MedicineEditorState extends State<MedicineEditor> {
               PageTitle(
                 widget.medicine == null ? 'Add medicine' : 'Edit medicine',
               ),
-              TextFormField(
-                controller: _name,
-                validator: _required,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Medicine name'),
+              Autocomplete<String>(
+                textEditingController: _name,
+                focusNode: _nameFocus,
+                optionsBuilder: _medicineOptions,
+                fieldViewBuilder: (context, controller, focus, _) =>
+                    TextFormField(
+                      controller: controller,
+                      focusNode: focus,
+                      validator: _required,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Medicine name',
+                      ),
+                    ),
               ),
               TextFormField(
                 controller: _strength,

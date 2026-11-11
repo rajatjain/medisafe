@@ -8,16 +8,22 @@ import '../domain/snapshot.dart';
 import 'backup_jobs.dart';
 import 'drive_backup.dart';
 import 'local_store.dart';
+import 'medicine_catalog.dart';
 import 'reminders.dart';
 
 class AppController extends ChangeNotifier {
-  AppController({LocalStore? store, DriveBackup? drive})
-    : _store = store ?? LocalStore(),
-      drive = drive ?? DriveBackup();
+  AppController({
+    LocalStore? store,
+    DriveBackup? drive,
+    MedicineCatalog? catalog,
+  }) : _store = store ?? LocalStore(),
+       drive = drive ?? DriveBackup(),
+       catalog = catalog ?? MedicineCatalog();
 
   final LocalStore _store;
   final reminders = const ReminderGateway();
   final DriveBackup drive;
+  final MedicineCatalog catalog;
   Snapshot snapshot = Snapshot();
   Map<String, DateTime> snoozes = {};
   ReminderReadiness? readiness;

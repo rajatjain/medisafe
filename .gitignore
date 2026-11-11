@@ -13,3 +13,4 @@ android/key.properties
 # Local Google OAuth credentials
 /client_secret_*.json
 /web-client.json
+gcp-secrets

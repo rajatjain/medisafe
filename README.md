@@ -16,6 +16,19 @@ Open **Settings → Reminders** to allow notifications and exact alarms, and to 
 
 The reminder sound uses a trimmed and level-adjusted recording of [Pill Bottle Shaking](https://freesound.org/people/bwarpus99/sounds/443860/) by bwarpus99 ([CC0](https://creativecommons.org/publicdomain/zero/1.0/)).
 
+## Optional medicine catalog
+
+Medisafe checks its private Android storage for the [Common Drug Codes for India Flat Files ZIP](https://www.nrces.in/resources) when opened or resumed and once a minute while in use. It builds a local SQLite index and refreshes it when the ZIP's SHA-256 changes. In **Add medicine**, type at least two characters for suggestions, or enter a name manually. **Settings → Medicine catalog** shows progress, the last successful index update, and the source licence.
+
+On a debug emulator, copy the ZIP into private app storage from the project root. Use the same command to replace it with a newer file.
+
+```sh
+adb -e shell -T "run-as in.medisafe.medisafe sh -c 'mkdir -p files && cat > files/catalog.zip.next && mv files/catalog.zip.next files/CommonDrugCodesForIndia_FlatFilePackage.zip && wc -c < files/CommonDrugCodesForIndia_FlatFilePackage.zip'" \
+  < data/CommonDrugCodesForIndia_FlatFilePackage.zip
+```
+
+For hosted updates, set `--dart-define=MEDISAFE_CATALOG_URL=https://example.com/catalog.zip` when building or running. The URL must serve the ZIP over HTTPS without sign-in. When configured, Medisafe checks on launch if the previous successful check was more than a day ago, then keeps checking while open. Failed downloads keep the current local catalog. The APK does not include the dataset.
+
 ## Set up Google Drive
 
 1. Enable the Google Drive API in a Google Cloud project and set up its OAuth consent screen. Add test users if the app is in testing.

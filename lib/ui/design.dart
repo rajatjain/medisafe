@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 enum AppPalette {
-  plum('Plum', Color(0xFF522668), Color(0xFFFAF7F2)),
-  sage('Sage', Color(0xFF2A5A45), Color(0xFFF5F8F1)),
-  ocean('Ocean', Color(0xFF164F70), Color(0xFFF2F8FB)),
-  terracotta('Terracotta', Color(0xFF843E2B), Color(0xFFFFF5EE)),
-  slate('Slate', Color(0xFF3E4C67), Color(0xFFF4F6FA));
+  plum('Plum', Color(0xFF7C35AB), Color(0xFFFBF8FD)),
+  sage('Sage', Color(0xFF087354), Color(0xFFF5FAF7)),
+  ocean('Ocean', Color(0xFF0069C4), Color(0xFFF4F9FF)),
+  terracotta('Terracotta', Color(0xFFB74025), Color(0xFFFFF8F4)),
+  slate('Slate', Color(0xFF435D9D), Color(0xFFF6F8FD));
 
   const AppPalette(this.label, this.seed, this.paper);
 
@@ -32,8 +32,10 @@ ThemeData appTheme(AppPalette palette, Brightness brightness) {
       ColorScheme.fromSeed(
         seedColor: palette.seed,
         brightness: brightness,
+        dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
         primary: dark ? null : palette.seed,
+        onPrimary: dark ? null : Colors.white,
         surface: dark ? const Color(0xFF19171C) : palette.paper,
       );
   final base = ThemeData(useMaterial3: true, colorScheme: colors);
@@ -51,11 +53,40 @@ ThemeData appTheme(AppPalette palette, Brightness brightness) {
       filled: true,
       fillColor: colors.surfaceContainerLowest,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(Space.md)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(Space.md),
+        borderSide: BorderSide(color: colors.primary, width: 2),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(64, 48),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Space.lg),
+        ),
+        textStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: colors.surfaceContainerLowest,
       indicatorColor: colors.primaryContainer,
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(
+          color: states.contains(WidgetState.selected)
+              ? colors.onPrimaryContainer
+              : colors.onSurfaceVariant,
+        ),
+      ),
       elevation: 0,
+    ),
+    listTileTheme: ListTileThemeData(
+      titleTextStyle: base.textTheme.bodyLarge?.copyWith(
+        color: colors.onSurface,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+      ),
     ),
     cardTheme: CardThemeData(
       color: colors.surfaceContainerLowest,
@@ -68,15 +99,34 @@ ThemeData appTheme(AppPalette palette, Brightness brightness) {
     ),
     textTheme: base.textTheme.copyWith(
       headlineLarge: base.textTheme.headlineLarge?.copyWith(
-        fontFamily: 'Instrument Serif',
-        fontSize: 48,
-        height: 1,
-        letterSpacing: -0.6,
+        fontSize: 34,
+        height: 1.15,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.55,
       ),
       titleMedium: base.textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w700,
       ),
     ),
+  );
+}
+
+class MedisafeBrand extends StatelessWidget {
+  const MedisafeBrand({super.key});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Image.asset(
+        'assets/branding/medisafe-logo.png',
+        width: 36,
+        height: 36,
+        excludeFromSemantics: true,
+      ),
+      const SizedBox(width: Space.sm),
+      const Flexible(child: Text('Medisafe', overflow: TextOverflow.ellipsis)),
+    ],
   );
 }
 

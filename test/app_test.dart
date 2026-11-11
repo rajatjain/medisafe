@@ -9,6 +9,26 @@ import 'package:medisafe/main.dart';
 import 'package:medisafe/services/controller.dart';
 import 'package:medisafe/services/drive_backup.dart';
 import 'package:medisafe/services/local_store.dart';
+import 'package:medisafe/services/medicine_catalog.dart';
+import 'package:medisafe/ui/medicine_editor.dart';
+import 'package:medisafe/ui/settings.dart';
+
+class _TestCatalog extends MedicineCatalog {
+  @override
+  Future<List<String>> suggest(String query, {int limit = 8}) async =>
+      query == 'crocin' ? ['Crocin Advance 500 mg oral tablet'] : [];
+
+  void finishIndexing(DateTime at) {
+    sourcePresent = true;
+    info = (
+      count: 1,
+      license: 'Test licence',
+      fingerprint: 'test',
+      updatedAt: at,
+    );
+    notifyListeners();
+  }
+}
 
 class _MemoryStore extends LocalStore {
   Snapshot saved = Snapshot();
@@ -54,6 +74,47 @@ class _TestDrive extends DriveBackup {
 }
 
 void main() {
+  testWidgets('shows medicine suggestions while Android composes a word', (
+    tester,
+  ) async {
+    final controller = AppController(catalog: _TestCatalog());
+    await tester.pumpWidget(MaterialApp(home: MedicineEditor(controller)));
+    final nameField = find.byType(TextFormField).first;
+    await tester.showKeyboard(nameField);
+    tester.testTextInput.updateEditingValue(
+      const TextEditingValue(
+        text: 'crocin',
+        selection: TextSelection.collapsed(offset: 6),
+        composing: TextRange(start: 0, end: 6),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final suggestion = find.text('Crocin Advance 500 mg oral tablet');
+    expect(suggestion, findsOneWidget);
+    await tester.tap(suggestion);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextFormField>(nameField).controller!.text,
+      'Crocin Advance 500 mg oral tablet',
+    );
+  });
+
+  testWidgets('Settings shows when the catalog finishes updating', (
+    tester,
+  ) async {
+    final catalog = _TestCatalog();
+    final controller = AppController(catalog: catalog);
+    await tester.pumpWidget(MaterialApp(home: SettingsView(controller)));
+    expect(find.textContaining('Last updated '), findsNothing);
+
+    catalog.finishIndexing(DateTime(2026, 11, 11, 20, 14));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Last updated '), findsOneWidget);
+    await tester.tap(find.text('Medicine catalog'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Last updated '), findsOneWidget);
+  });
+
   testWidgets(
     'skipping Drive onboarding keeps the app offline on the next launch',
     (tester) async {
@@ -113,6 +174,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.byTooltip('Google account'), findsNothing);
     await tester.tap(find.text('Continue with Google'));
     await tester.pumpAndSettle();
     expect(drive.calls, ['connect', 'download']);
@@ -124,6 +186,11 @@ void main() {
     expect(find.text(medicine.name), findsOneWidget);
     expect(store.saved.backupDisplayName, drive.displayName);
     expect(store.saved.backupJson().containsKey('backupDisplayName'), isFalse);
+    await tester.tap(find.byTooltip('Google account'));
+    await tester.pumpAndSettle();
+    expect(find.text('Connected account'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Connected · ${drive.email}'), findsOneWidget);

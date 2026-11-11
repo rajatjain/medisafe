@@ -32,6 +32,7 @@ class _MedisafeAppState extends State<MedisafeApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _load = _initialize();
+    unawaited(widget.controller.catalog.checkForUpdates());
     _startTimer();
   }
 
@@ -51,6 +52,7 @@ class _MedisafeAppState extends State<MedisafeApp> with WidgetsBindingObserver {
   }
 
   Future<void> _refresh() async {
+    unawaited(widget.controller.catalog.checkForUpdates());
     try {
       await widget.controller.refresh();
     } on Exception {
@@ -169,10 +171,15 @@ class _HomeState extends State<_Home> {
     if (!mounted) return;
     await runAction(context, controller.dismissDriveIntro);
     if (connect != true || !mounted) return;
+    await _openDriveSettings(connectOnOpen: true);
+  }
+
+  Future<void> _openDriveSettings({bool connectOnOpen = false}) async {
+    final controller = widget.controller;
     final restored = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => DriveSettings(controller, connectOnOpen: true),
+        builder: (_) => DriveSettings(controller, connectOnOpen: connectOnOpen),
       ),
     );
     if (restored == true && mounted) {
@@ -196,13 +203,16 @@ class _HomeState extends State<_Home> {
         );
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const LeadingIcon(Icons.medication_outlined),
-            const SizedBox(width: Space.sm),
-            const Text('Medisafe'),
-          ],
-        ),
+        title: const MedisafeBrand(),
+        actionsPadding: const EdgeInsetsDirectional.only(end: Space.sm),
+        actions: [
+          if (controller.snapshot.backupAccount != null)
+            IconButton(
+              tooltip: 'Google account',
+              onPressed: () => _openDriveSettings(),
+              icon: DriveAccountAvatar(controller.snapshot, radius: 17),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(
