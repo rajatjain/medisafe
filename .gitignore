@@ -10,6 +10,10 @@ android/key.properties
 *.jks
 *.keystore
 
+# Local files
+.DS_Store
+/data/
+
 # Local Google OAuth credentials
 /client_secret_*.json
 /web-client.json
