@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
+import '../app_name.dart';
 import '../domain/snapshot.dart';
 
 class BackupException implements Exception {
@@ -52,7 +53,7 @@ class DriveBackup {
         final account = await _google.authenticate();
         if (expectedEmail != null && account.email != expectedEmail) {
           throw const BackupException(
-            'Choose the Google account already connected to Medisafe.',
+            'Choose the Google account already connected to $appName.',
           );
         }
         await account.authorizationClient.authorizationForScopes(_scope) ??

@@ -237,7 +237,7 @@ class MedicineCatalog extends ChangeNotifier {
       _failedFingerprint = fingerprint;
       error = exception.message;
     } on Exception {
-      error = 'Medisafe could not read or index the catalog. It will retry.';
+      error = 'Could not read or index the catalog. The app will retry.';
     } finally {
       final wasIndexing = indexing;
       indexing = false;
@@ -264,7 +264,7 @@ class MedicineCatalog extends ChangeNotifier {
       if (await _downloadIfDue(file)) await checkForUpdates();
     } on Exception {
       downloadError =
-          'Could not download the medicine catalog. Medisafe will retry.';
+          'Could not download the medicine catalog. The app will retry.';
     }
     if (previousError != downloadError) notifyListeners();
   }

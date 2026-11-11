@@ -10,6 +10,8 @@ import 'package:medisafe/services/controller.dart';
 import 'package:medisafe/services/drive_backup.dart';
 import 'package:medisafe/services/local_store.dart';
 import 'package:medisafe/services/medicine_catalog.dart';
+import 'package:medisafe/ui/design.dart';
+import 'package:medisafe/ui/dose_views.dart';
 import 'package:medisafe/ui/medicine_editor.dart';
 import 'package:medisafe/ui/settings.dart';
 
@@ -74,6 +76,55 @@ class _TestDrive extends DriveBackup {
 }
 
 void main() {
+  test('featured card text and actions contrast with every theme tint', () {
+    double contrast(Color foreground, Color background) {
+      final tones = [
+        foreground.computeLuminance(),
+        background.computeLuminance(),
+      ]..sort();
+      return (tones.last + 0.05) / (tones.first + 0.05);
+    }
+
+    for (final palette in AppPalette.values) {
+      for (final brightness in Brightness.values) {
+        final colors = appTheme(palette, brightness).colorScheme;
+        for (final color in [colors.onSurface, colors.primary]) {
+          expect(
+            contrast(color, colors.primaryContainer),
+            greaterThanOrEqualTo(4.5),
+            reason: '${palette.label} ${brightness.name}',
+          );
+        }
+        expect(
+          contrast(colors.onPrimary, colors.primary),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+    }
+  });
+
+  testWidgets('Today shows the featured dose once', (tester) async {
+    final medicine = Medicine(
+      id: 'featured',
+      name: 'Test reminder',
+      strength: '',
+      instructions: '',
+      frequency: Frequency.daily,
+      interval: 1,
+      weekdays: {},
+      times: [const ReminderTime(8 * 60, '1')],
+      startDate: dayOnly(DateTime.now()),
+      end: ScheduleEnd.ongoing,
+    );
+    final controller = AppController()
+      ..snapshot = Snapshot(medicines: [medicine]);
+    await tester.pumpWidget(MaterialApp(home: TodayView(controller)));
+    expect(find.text('Next dose'), findsOneWidget);
+    expect(find.text('Test reminder'), findsOneWidget);
+    expect(find.text('Mark taken'), findsOneWidget);
+    expect(find.text('Today’s schedule'), findsNothing);
+  });
+
   testWidgets('shows medicine suggestions while Android composes a word', (
     tester,
   ) async {
@@ -212,6 +263,13 @@ void main() {
       await tester.pumpWidget(MedisafeApp(controller: controller));
       await tester.pumpAndSettle();
 
+      final logo = find.descendant(
+        of: find.byType(AppBrand),
+        matching: find.byType(DecoratedBox),
+      );
+      Color? logoColor() =>
+          (tester.widget<DecoratedBox>(logo).decoration as BoxDecoration).color;
+      expect(logoColor(), AppPalette.plum.seed);
       expect(find.text('Add medicine'), findsOneWidget);
       await tester.tap(find.text('Add medicine'));
       await tester.pumpAndSettle();
@@ -242,6 +300,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(store.saved.theme, 'sage');
+      expect(logoColor(), AppPalette.sage.seed);
       expect(store.saved.medicines.single.name, 'Medicine A');
       await tester.pumpWidget(const SizedBox.shrink());
       debugDefaultTargetPlatformOverride = null;

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'app_name.dart';
 import 'domain/medication.dart';
 import 'services/backup_jobs.dart';
 import 'services/controller.dart';
@@ -83,7 +84,7 @@ class _MedisafeAppState extends State<MedisafeApp> with WidgetsBindingObserver {
     builder: (context, _) {
       final palette = AppPalette.fromName(widget.controller.snapshot.theme);
       return MaterialApp(
-        title: 'Medisafe',
+        title: appName,
         theme: appTheme(palette, Brightness.light),
         darkTheme: appTheme(palette, Brightness.dark),
         debugShowCheckedModeBanner: false,
@@ -100,7 +101,7 @@ class _MedisafeAppState extends State<MedisafeApp> with WidgetsBindingObserver {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            'Medisafe could not open your saved data.',
+                            '$appName could not open your saved data.',
                           ),
                           TextButton(
                             onPressed: () =>
@@ -154,7 +155,7 @@ class _HomeState extends State<_Home> {
         title: const Text('Back up with Google Drive'),
         content: const Text(
           'Keep a copy of your medicines, schedules, and dose history in '
-          'Medisafe’s private Drive folder. You can also use Medisafe offline.',
+          'the app’s private Drive folder. You can use $appName offline.',
         ),
         actions: [
           TextButton(
@@ -203,7 +204,7 @@ class _HomeState extends State<_Home> {
         );
     return Scaffold(
       appBar: AppBar(
-        title: const MedisafeBrand(),
+        title: const AppBrand(),
         actionsPadding: const EdgeInsetsDirectional.only(end: Space.sm),
         actions: [
           if (controller.snapshot.backupAccount != null)

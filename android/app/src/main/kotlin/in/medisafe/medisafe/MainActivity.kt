@@ -3,6 +3,7 @@ package `in`.medisafe.medisafe
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
@@ -22,6 +23,19 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
         ReminderEngine.createChannel(this)
+        MethodChannel(engine.dartExecutor.binaryMessenger, "medisafe/launcher_icon")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "setTheme") {
+                    try {
+                        updateLauncherIcon(call.arguments as? String)
+                        result.success(null)
+                    } catch (_: Exception) {
+                        result.error("LAUNCHER_ICON", "Could not update the launcher icon.", null)
+                    }
+                } else {
+                    result.notImplemented()
+                }
+            }
         MethodChannel(engine.dartExecutor.binaryMessenger, "medisafe/reminders")
             .setMethodCallHandler { call, result ->
                 try {
@@ -67,6 +81,52 @@ class MainActivity : FlutterActivity() {
                     result.error("REMINDER_ERROR", "Could not update Android reminders.", null)
                 }
             }
+    }
+
+    private fun updateLauncherIcon(theme: String?) {
+        val aliases = mapOf(
+            "plum" to "LauncherPlum",
+            "sage" to "LauncherSage",
+            "ocean" to "LauncherOcean",
+            "terracotta" to "LauncherTerracotta",
+            "slate" to "LauncherSlate",
+        )
+        val defaultIcon = aliases.getValue("plum")
+        val selectedIcon = aliases[theme] ?: defaultIcon
+        val manager = packageManager
+        fun component(alias: String) = ComponentName(packageName, "$packageName.$alias")
+        try {
+            // Debug and profile builds use MainActivity as their Flutter launch target.
+            manager.getActivityInfo(component(defaultIcon), PackageManager.MATCH_DISABLED_COMPONENTS)
+        } catch (_: PackageManager.NameNotFoundException) {
+            return
+        }
+
+        // Enable the replacement before disabling the previous icon on older Android versions.
+        val changes = (listOf(selectedIcon) + aliases.values.filter { it != selectedIcon })
+            .mapNotNull { alias ->
+                val target = component(alias)
+                val state = manager.getComponentEnabledSetting(target)
+                val enabled = state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED ||
+                    (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && alias == defaultIcon)
+                val shouldEnable = alias == selectedIcon
+                if (enabled == shouldEnable) null else target to if (shouldEnable) {
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                } else {
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                }
+            }
+        if (changes.isEmpty()) return
+        val flags = PackageManager.DONT_KILL_APP
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            manager.setComponentEnabledSettings(changes.map { (component, state) ->
+                PackageManager.ComponentEnabledSetting(component, state, flags)
+            })
+        } else {
+            for ((component, state) in changes) {
+                manager.setComponentEnabledSetting(component, state, flags)
+            }
+        }
     }
 
     private fun requestNotifications(result: MethodChannel.Result) {

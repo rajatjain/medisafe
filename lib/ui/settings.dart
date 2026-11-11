@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_name.dart';
 import '../domain/medication.dart';
 import '../domain/snapshot.dart';
 import '../services/controller.dart';
@@ -229,9 +230,9 @@ class _DriveSettingsState extends State<DriveSettings> {
     if (!mounted) return;
     if (backup == null) {
       if (!quietIfMissing) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No Medisafe backup found.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No backup found.')));
       }
       return;
     }
@@ -260,7 +261,7 @@ class _DriveSettingsState extends State<DriveSettings> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Medisafe')),
+    appBar: AppBar(title: const Text(appName)),
     body: SafeArea(
       child: ListenableBuilder(
         listenable: widget.controller,
@@ -295,7 +296,7 @@ class _DriveSettingsState extends State<DriveSettings> {
                       )
                     else if (snapshot.backupAccount == null) ...[
                       const Text(
-                        'Allow Medisafe to read and write backups in its private Drive folder.',
+                        'Allow $appName to read and write backups in its private Drive folder.',
                       ),
                       const SizedBox(height: Space.sm),
                       FilledButton(
@@ -384,7 +385,7 @@ class _DriveSettingsState extends State<DriveSettings> {
               ),
               if (snapshot.backupAccount != null)
                 const Text(
-                  'Medisafe keeps the latest backup in its private Drive folder. '
+                  '$appName keeps the latest backup in its private Drive folder. '
                   'Each backup can be up to ${DriveBackup.maxBackupMb} MB.',
                 ),
               if (snapshot.backupAccount != null && BackupJobs.supported)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_name.dart';
 import '../domain/medication.dart';
 import '../services/controller.dart';
 import 'design.dart';
@@ -38,6 +39,7 @@ class TodayView extends StatelessWidget {
     final pending = doses
         .where((dose) => !entries.containsKey(dose.id))
         .firstOrNull;
+    final otherDoses = doses.where((dose) => dose.id != pending?.id);
     final count = doses
         .where((dose) => entries[dose.id]?.status == DoseStatus.taken)
         .length;
@@ -47,18 +49,18 @@ class TodayView extends StatelessWidget {
           'Today’s doses',
           eyebrow: MaterialLocalizations.of(
             context,
-          ).formatFullDate(DateTime.now()).toUpperCase(),
+          ).formatFullDate(DateTime.now()),
           subtitle: '$count of ${doses.length} taken · Local time',
         ),
         if (doses.isEmpty)
           const SectionCard(child: Text('No doses scheduled today.')),
         if (pending != null) _DoseCard(controller, pending, featured: true),
-        if (doses.isNotEmpty) ...[
+        if (otherDoses.isNotEmpty) ...[
           Text(
-            'Today’s schedule',
+            pending == null ? 'Today’s schedule' : 'Other doses',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          for (final dose in doses)
+          for (final dose in otherDoses)
             _DoseCard(controller, dose, featured: false),
         ],
       ],
@@ -127,6 +129,7 @@ class _DoseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final entry = controller.snapshot.entries[dose.id];
     final snooze = controller.snoozes[dose.id];
     final now = DateTime.now();
@@ -150,7 +153,10 @@ class _DoseCard extends StatelessWidget {
               children: [
                 Text(
                   snooze == null ? 'Next dose' : 'Snoozed',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 StatusPill(time),
               ],
@@ -172,11 +178,11 @@ class _DoseCard extends StatelessWidget {
                   children: [
                     Text(
                       dose.medicine.label,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium,
                     ),
                     Text(
                       featured
-                          ? dose.time.quantity
+                          ? 'Dose · ${dose.time.quantity}'
                           : '${clockLabel(context, dose.time.minutes)} · ${dose.time.quantity}',
                     ),
                     if (featured && dose.medicine.instructions.isNotEmpty)
@@ -204,12 +210,13 @@ class _DoseCard extends StatelessWidget {
             const SizedBox(height: Space.md),
             AppActions(
               children: [
-                FilledButton(
+                FilledButton.icon(
                   onPressed: () => runAction(
                     context,
                     () => controller.setDose(dose, DoseStatus.taken),
                   ),
-                  child: const Text('Taken'),
+                  icon: const Icon(Icons.check_rounded, size: 18),
+                  label: const Text('Mark taken'),
                 ),
                 OutlinedButton(
                   onPressed: canSnooze ? () => _snooze(context) : null,
@@ -310,7 +317,7 @@ class MedicineDetail extends StatelessWidget {
           .where((m) => m.id == id)
           .firstOrNull;
       return Scaffold(
-        appBar: AppBar(title: const Text('Medisafe')),
+        appBar: AppBar(title: const Text(appName)),
         body: SafeArea(
           child: medicine == null
               ? const Center(child: Text('Medicine unavailable'))
@@ -414,7 +421,7 @@ class MedicineDetail extends StatelessWidget {
                         context,
                         MaterialPageRoute<void>(
                           builder: (_) => Scaffold(
-                            appBar: AppBar(title: const Text('Medisafe')),
+                            appBar: AppBar(title: const Text(appName)),
                             body: SafeArea(
                               child: ListenableBuilder(
                                 listenable: controller,
@@ -545,7 +552,7 @@ class _DoseEditorState extends State<DoseEditor> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Medisafe')),
+    appBar: AppBar(title: const Text(appName)),
     body: SafeArea(
       child: Form(
         key: _form,

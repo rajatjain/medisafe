@@ -1,4 +1,4 @@
-# Medisafe
+# Take Your Pills
 
 An Android-first Flutter app for medication reminders. The app works offline and does not require an account. Google sign-in is used only for Google Drive backup and restore.
 
@@ -18,7 +18,7 @@ The reminder sound uses a trimmed and level-adjusted recording of [Pill Bottle S
 
 ## Optional medicine catalog
 
-Medisafe checks its private Android storage for the [Common Drug Codes for India Flat Files ZIP](https://www.nrces.in/resources) when opened or resumed and once a minute while in use. It builds a local SQLite index and refreshes it when the ZIP's SHA-256 changes. In **Add medicine**, type at least two characters for suggestions, or enter a name manually. **Settings → Medicine catalog** shows progress, the last successful index update, and the source licence.
+Take Your Pills checks its private Android storage for the [Common Drug Codes for India Flat Files ZIP](https://www.nrces.in/resources) when opened or resumed and once a minute while in use. It builds a local SQLite index and refreshes it when the ZIP's SHA-256 changes. In **Add medicine**, type at least two characters for suggestions, or enter a name manually. **Settings → Medicine catalog** shows progress, the last successful index update, and the source licence.
 
 On a debug emulator, copy the ZIP into private app storage from the project root. Use the same command to replace it with a newer file.
 
@@ -27,7 +27,7 @@ adb -e shell -T "run-as in.medisafe.medisafe sh -c 'mkdir -p files && cat > file
   < data/CommonDrugCodesForIndia_FlatFilePackage.zip
 ```
 
-For hosted updates, set `--dart-define=MEDISAFE_CATALOG_URL=https://example.com/catalog.zip` when building or running. The URL must serve the ZIP over HTTPS without sign-in. When configured, Medisafe checks on launch if the previous successful check was more than a day ago, then keeps checking while open. Failed downloads keep the current local catalog. The APK does not include the dataset.
+For hosted updates, set `--dart-define=MEDISAFE_CATALOG_URL=https://example.com/catalog.zip` when building or running. The URL must serve the ZIP over HTTPS without sign-in. When configured, Take Your Pills checks on launch if the previous successful check was more than a day ago, then keeps checking while open. Failed downloads keep the current local catalog. The APK does not include the dataset.
 
 ## Set up Google Drive
 
@@ -39,9 +39,9 @@ For hosted updates, set `--dart-define=MEDISAFE_CATALOG_URL=https://example.com/
 flutter run --dart-define=GOOGLE_SERVER_CLIENT_ID=YOUR_WEB_CLIENT_ID
 ```
 
-On first launch, you can connect Google or choose **Not now**. You can connect later in **Settings → Google Drive**. After you connect, Medisafe checks for a backup and asks before restoring it. Use **Back up now** or set a preferred backup schedule. Android runs scheduled backups when background work and a network connection are available.
+On first launch, you can connect Google or choose **Not now**. You can connect later in **Settings → Google Drive**. After you connect, Take Your Pills checks for a backup and asks before restoring it. Use **Back up now** or set a preferred backup schedule. Android runs scheduled backups when background work and a network connection are available.
 
-Medisafe uses the `drive.appdata` permission to store complete snapshots in its private Google Drive app folder. It keeps the newest backup, with a 5 MB limit per snapshot. During replacement, the previous backup is kept until the new one is saved. If a snapshot exceeds the limit, the existing backup and local data stay intact.
+Take Your Pills uses the `drive.appdata` permission to store complete snapshots in its private Google Drive app folder. It keeps the newest backup, with a 5 MB limit per snapshot. During replacement, the previous backup is kept until the new one is saved. If a snapshot exceeds the limit, the existing backup and local data stay intact.
 
 ## iOS
 

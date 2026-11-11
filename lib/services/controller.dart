@@ -12,6 +12,8 @@ import 'medicine_catalog.dart';
 import 'reminders.dart';
 
 class AppController extends ChangeNotifier {
+  static const _launcherIcon = MethodChannel('medisafe/launcher_icon');
+
   AppController({
     LocalStore? store,
     DriveBackup? drive,
@@ -48,6 +50,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> initialize() => _serial(() async {
     snapshot = await _store.load();
+    await _syncLauncherIcon();
     await _refreshReminders();
     await _refreshBackup();
     notifyListeners();
@@ -136,11 +139,25 @@ class AppController extends ChangeNotifier {
     }
   });
 
-  Future<void> setTheme(String name) => _update(
-    (data) => data.theme = name,
-    clinicalData: false,
-    reschedule: false,
-  );
+  Future<void> setTheme(String name) async {
+    await _update(
+      (data) => data.theme = name,
+      clinicalData: false,
+      reschedule: false,
+    );
+    await _syncLauncherIcon();
+  }
+
+  Future<void> _syncLauncherIcon() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await _launcherIcon.invokeMethod<void>('setTheme', snapshot.theme);
+    } on PlatformException catch (error) {
+      debugPrint('Could not update the launcher icon: ${error.code}');
+    } on MissingPluginException {
+      // The in-app theme is available independently of launcher integration.
+    }
+  }
 
   Future<void> dismissDriveIntro() => _update(
     (data) => data.driveIntroSeen = true,

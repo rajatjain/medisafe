@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_name.dart';
 import '../domain/medication.dart';
 import '../services/controller.dart';
 import 'design.dart';
@@ -200,7 +201,7 @@ class _MedicineEditorState extends State<MedicineEditor> {
       'Sunday',
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Medisafe')),
+      appBar: AppBar(title: const Text(appName)),
       body: SafeArea(
         child: Form(
           key: _form,

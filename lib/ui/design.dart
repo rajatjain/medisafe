@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_name.dart';
+
 enum AppPalette {
   plum('Plum', Color(0xFF7C35AB), Color(0xFFFBF8FD)),
   sage('Sage', Color(0xFF087354), Color(0xFFF5FAF7)),
@@ -28,16 +30,23 @@ class Space {
 
 ThemeData appTheme(AppPalette palette, Brightness brightness) {
   final dark = brightness == Brightness.dark;
-  final colors =
-      ColorScheme.fromSeed(
-        seedColor: palette.seed,
-        brightness: brightness,
-        dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-      ).copyWith(
-        primary: dark ? null : palette.seed,
-        onPrimary: dark ? null : Colors.white,
-        surface: dark ? const Color(0xFF19171C) : palette.paper,
-      );
+  final scheme = ColorScheme.fromSeed(
+    seedColor: palette.seed,
+    brightness: brightness,
+    dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+  );
+  final primary = dark ? scheme.primary : palette.seed;
+  final surface = dark ? const Color(0xFF19171C) : palette.paper;
+  final colors = scheme.copyWith(
+    primary: primary,
+    onPrimary: dark ? scheme.onPrimary : Colors.white,
+    surface: surface,
+    primaryContainer: Color.alphaBlend(
+      primary.withValues(alpha: dark ? 0.15 : 0.08),
+      surface,
+    ),
+    onPrimaryContainer: primary,
+  );
   final base = ThemeData(useMaterial3: true, colorScheme: colors);
   return base.copyWith(
     scaffoldBackgroundColor: colors.surface,
@@ -111,23 +120,78 @@ ThemeData appTheme(AppPalette palette, Brightness brightness) {
   );
 }
 
-class MedisafeBrand extends StatelessWidget {
-  const MedisafeBrand({super.key});
+class AppBrand extends StatelessWidget {
+  const AppBrand({super.key});
 
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Image.asset(
-        'assets/branding/medisafe-logo.png',
-        width: 36,
-        height: 36,
-        excludeFromSemantics: true,
-      ),
+      const _AppLogo(),
       const SizedBox(width: Space.sm),
-      const Flexible(child: Text('Medisafe', overflow: TextOverflow.ellipsis)),
+      const Flexible(child: Text(appName, overflow: TextOverflow.ellipsis)),
     ],
   );
+}
+
+class _AppLogo extends StatelessWidget {
+  const _AppLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: CustomPaint(
+          size: const Size.square(24),
+          painter: _CapsuleMark(colors.onPrimary),
+        ),
+      ),
+    );
+  }
+}
+
+class _CapsuleMark extends CustomPainter {
+  const _CapsuleMark(this.color);
+
+  final Color color;
+
+  static final _shape = Path()
+    ..fillType = PathFillType.evenOdd
+    ..moveTo(15.1, 3)
+    ..cubicTo(13.55, 3, 12.02, 3.6, 10.84, 4.77)
+    ..lineTo(4.77, 10.84)
+    ..arcToPoint(
+      const Offset(13.28, 19.35),
+      radius: const Radius.circular(6.02),
+      clockwise: false,
+    )
+    ..lineTo(19.35, 13.28)
+    ..arcToPoint(
+      const Offset(15.1, 3),
+      radius: const Radius.circular(6.02),
+      clockwise: false,
+    )
+    ..close()
+    ..moveTo(6.2, 12.26)
+    ..lineTo(8.52, 9.95)
+    ..lineTo(14.19, 15.62)
+    ..lineTo(11.87, 17.93)
+    ..arcToPoint(const Offset(6.2, 12.26), radius: const Radius.circular(4.01))
+    ..close();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(_shape, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_CapsuleMark oldDelegate) => color != oldDelegate.color;
 }
 
 class PageTitle extends StatelessWidget {
@@ -148,7 +212,7 @@ class PageTitle extends StatelessWidget {
             eyebrow!,
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.primary,
-              letterSpacing: 1.1,
+              letterSpacing: 0.2,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -218,10 +282,13 @@ class StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final dark = colors.brightness == Brightness.dark;
     final (background, foreground) = warning
         ? (colors.errorContainer, colors.onErrorContainer)
         : complete
-        ? (colors.tertiaryContainer, colors.onTertiaryContainer)
+        ? dark
+              ? (const Color(0xFF183B2B), const Color(0xFFA2E9BE))
+              : (const Color(0xFFDDF4E5), const Color(0xFF20553B))
         : (colors.secondaryContainer, colors.onSecondaryContainer);
     return DecoratedBox(
       decoration: BoxDecoration(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_name.dart';
 import '../services/medicine_catalog.dart';
 import 'design.dart';
 
@@ -28,7 +29,7 @@ class CatalogSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Medisafe')),
+    appBar: AppBar(title: const Text(appName)),
     body: SafeArea(
       child: ListenableBuilder(
         listenable: catalog,
@@ -81,7 +82,7 @@ class CatalogSettings extends StatelessWidget {
                     children: [
                       const Text(
                         'Common Drug Codes for India by NRCeS and C-DAC, Pune. '
-                        'Medisafe extracts the medicine names and indexes them for search.',
+                        '$appName indexes the medicine names for search.',
                       ),
                       const SizedBox(height: Space.sm),
                       const SelectableText('https://www.nrces.in/resources'),
