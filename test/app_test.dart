@@ -215,7 +215,13 @@ void main() {
       expect(find.text('Add medicine'), findsOneWidget);
       await tester.tap(find.text('Add medicine'));
       await tester.pumpAndSettle();
-      expect(find.text('Select time'), findsOneWidget);
+      final timeLabel = find.text('Time 1 (required)');
+      final timeHint = find.text('Select time');
+      expect(timeHint, findsOneWidget);
+      expect(
+        tester.getRect(timeLabel).overlaps(tester.getRect(timeHint)),
+        isFalse,
+      );
       await tester.enterText(find.byType(TextFormField).first, 'Medicine A');
       await tester.tap(find.text('Daily'));
       await tester.pumpAndSettle();

@@ -347,13 +347,13 @@ class TimeField extends StatelessWidget {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          hintText: 'Select time',
           errorText: state.errorText,
           suffixIcon: const Icon(Icons.schedule),
         ),
         isEmpty: minutes == null,
-        child: Text(
-          minutes == null ? 'Select time' : clockLabel(context, minutes!),
-        ),
+        child: minutes == null ? null : Text(clockLabel(context, minutes!)),
       ),
     ),
   );
