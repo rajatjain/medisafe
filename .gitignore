@@ -1,0 +1,15 @@
+.dart_tool/
+.flutter-plugins-dependencies
+.metadata
+.idea/
+*.iml
+build/
+coverage/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# Local Google OAuth credentials
+/client_secret_*.json
+/web-client.json
